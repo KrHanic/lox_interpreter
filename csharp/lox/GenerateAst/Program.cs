@@ -35,17 +35,30 @@
             AddLine(ref fileContent, $"public abstract class {baseName}", 1);
             AddLine(ref fileContent, "{", 1);
 
+            DefineVisitor(ref fileContent, baseName, types);
+
             foreach (string type in types)
             {
                 string className = type.Split(':')[0].Trim();
                 string fields = type.Split(":")[1].Trim();
                 DefineType(ref fileContent, baseName, className, fields);
             }
-
+            AddLine(ref fileContent, "public abstract T Accept<T>(IVisitor<T> visitor);", 2);
             AddLine(ref fileContent, "}", 1);
             AddLine(ref fileContent, "}");
 
             File.WriteAllText(path, fileContent);
+        }
+
+        private static void DefineVisitor(ref string fileContent, string baseName, List<string> types)
+        {
+            AddLine(ref fileContent, "public interface IVisitor<T> {", 2);
+            foreach (string type in types)
+            {
+                string typeName = type.Split(":")[0].Trim();
+                AddLine(ref fileContent, $"public T Visit{typeName}{baseName}({typeName} {baseName});", 3);
+            }
+            AddLine(ref fileContent, "}", 2);
         }
 
         private static void AddLine(ref string fileContent, string text, int numOfTabs = 0)
@@ -70,6 +83,11 @@
 
             AddLine(ref fileContent, "}", 3);
             AddLine(ref fileContent, "");
+
+            AddLine(ref fileContent, "public override T Accept<T>(IVisitor<T> visitor) {", 3);
+            AddLine(ref fileContent, $"return visitor.Visit{className}{baseName}(this);", 4);
+            AddLine(ref fileContent, "}", 3);
+
             foreach (string field in fields)
             {
                 AddLine(ref fileContent, $"public {field};", 3);
