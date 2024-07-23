@@ -59,11 +59,12 @@
         {
             Scanner scanner = new Scanner(source);
             List<Token> tokens = scanner.ScanTokens();
+            Parser parser = new Parser(tokens);
+            Expr expression = parser.Parse();
 
-            foreach (Token token in tokens)
-            {
-                Console.WriteLine($"{token}");
-            }
+            if (_hadError) return;
+
+            Console.WriteLine(new AstPrinter().Print(expression));
         }
 
         public static void Error(int line, string msg)
@@ -75,6 +76,11 @@
         { 
             Console.WriteLine($"[line {line}] Error{where}: {msg}");
             _hadError = true;
+        }
+
+        public static void Error(Token token, string message) {
+            if (token.Type == TokenType.EOF) Report(token.Line, " at end", message);
+            else Report(token.Line, " at '" + token.Lexeme + "'", message);
         }
     }
 }
