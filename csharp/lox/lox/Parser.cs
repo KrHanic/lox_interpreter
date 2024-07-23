@@ -58,7 +58,7 @@
             while (Match(TokenType.MINUS, TokenType.PLUS)) { 
                 Token operator_ = Previous();
                 Expr right = Factor();
-                return new Expr.Binary(expr, operator_, right);
+                expr = new Expr.Binary(expr, operator_, right);
             }
 
             return expr;
@@ -70,7 +70,7 @@
             while (Match(TokenType.SLASH, TokenType.STAR)) {
                 Token operator_ = Previous();
                 Expr right = Unary();
-                return new Expr.Binary(expr, operator_, right);
+                expr = new Expr.Binary(expr, operator_, right);
             }
 
             return expr;
