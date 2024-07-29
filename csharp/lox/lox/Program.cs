@@ -15,7 +15,9 @@
         //    Console.WriteLine(new AstPrinter().Print(expression));
         //}
 
-        static bool _hadError = false;
+        private static Interpreter _interpreter = new();
+        static bool _hadError        = false;
+        static bool _hadRuntimeError = false;
 
         static void Main(string[] args)
         {
@@ -40,7 +42,8 @@
             string content = File.ReadAllText(fullPath);
             Run(content);
 
-            if(_hadError) Environment.Exit(65);
+            if(_hadError)         Environment.Exit(65);
+            if (_hadRuntimeError) Environment.Exit(70);
         }
 
         private static void RunPrompt()
@@ -64,7 +67,7 @@
 
             if (_hadError) return;
 
-            Console.WriteLine(new AstPrinter().Print(expression));
+            _interpreter.Interpret(expression);
         }
 
         public static void Error(int line, string msg)
@@ -81,6 +84,11 @@
         public static void Error(Token token, string message) {
             if (token.Type == TokenType.EOF) Report(token.Line, " at end", message);
             else Report(token.Line, " at '" + token.Lexeme + "'", message);
+        }
+
+        public static void RuntimeError(RuntimeError error) {
+            Console.WriteLine(error.Message + $"\n[line {error.Token.Line}]");
+            _hadRuntimeError = true;
         }
     }
 }
