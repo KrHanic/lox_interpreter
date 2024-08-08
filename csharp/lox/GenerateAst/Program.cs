@@ -13,15 +13,19 @@
             try
             {
                 DefineAst(outputDir, "Expr", new List<string> {
+                    "Assign   : Token name, Expr value",
                     "Binary   : Expr Left, Token Operator, Expr Right",
                     "Grouping : Expr Expression",
                     "Literal  : object Value",
-                    "Unary    : Token Operator, Expr Right"
+                    "Unary    : Token Operator, Expr Right",
+                    "Variable : Token name"
                 });
 
                 DefineAst(outputDir, "Stmt", new List<string> { 
+                    "Block      : List<Stmt> statements",
                     "Expression : Expr expression",
-                    "Print      : Expr expression"
+                    "Print      : Expr expression",
+                    "Var        : Token name, Expr initializer"
                 });
             }
             catch (Exception e)

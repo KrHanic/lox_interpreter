@@ -1,4 +1,6 @@
-﻿namespace lox
+﻿using System.Diagnostics;
+
+namespace lox
 {
     internal class Program
     {
@@ -24,7 +26,7 @@
             if (args.Length > 1)
             {
                 Console.WriteLine("Usage: jlox [script]");
-                Environment.Exit(64);
+                System.Environment.Exit(64);
             }
             else if (args.Length == 1)
             {
@@ -32,7 +34,8 @@
             }
             else
             {
-                RunPrompt();
+                RunFile("D:\\projects\\lox\\lox_interpreter\\csharp\\lox\\lox\\test.lox");
+                //RunPrompt();
             }
         }
 
@@ -42,8 +45,8 @@
             string content = File.ReadAllText(fullPath);
             Run(content);
 
-            if(_hadError)         Environment.Exit(65);
-            if (_hadRuntimeError) Environment.Exit(70);
+            if(_hadError)         System.Environment.Exit(65);
+            if (_hadRuntimeError) System.Environment.Exit(70);
         }
 
         private static void RunPrompt()
@@ -62,12 +65,12 @@
         {
             Scanner scanner = new Scanner(source);
             List<Token> tokens = scanner.ScanTokens();
-            Parser parser = new Parser(tokens);
-            Expr expression = parser.Parse();
+            Parser parser = new(tokens);
+            List<Stmt> statements = parser.Parse();
 
             if (_hadError) return;
 
-            _interpreter.Interpret(expression);
+            _interpreter.Interpret(statements);
         }
 
         public static void Error(int line, string msg)
@@ -77,7 +80,7 @@
 
         private static void Report(int line, string where, string msg)
         { 
-            Console.WriteLine($"[line {line}] Error{where}: {msg}");
+            Debug.WriteLine($"[line {line}] Error{where}: {msg}");
             _hadError = true;
         }
 
@@ -87,7 +90,7 @@
         }
 
         public static void RuntimeError(RuntimeError error) {
-            Console.WriteLine(error.Message + $"\n[line {error.Token.Line}]");
+            Debug.WriteLine(error.Message + $"\n[line {error.Token.Line}]");
             _hadRuntimeError = true;
         }
     }

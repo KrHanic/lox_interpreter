@@ -1,18 +1,26 @@
-﻿namespace lox
+﻿using System.Diagnostics;
+
+namespace lox
 {
-    public class Interpreter : Expr.IVisitor<object>
+    public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
     {
-        public void Interpret(Expr expr) {
+        private Environment _env = new();
+
+        public void Interpret(List<Stmt> statements) {
             try
             {
-                object value = Evaluate(expr);
-                Console.WriteLine(Stringify(value));
+                foreach (Stmt stmt in statements) {
+                    Execute(stmt);
+                }
             }
             catch (RuntimeError error)
             {
                 Program.RuntimeError(error);
-                throw;
             }
+        }
+
+        private void Execute(Stmt stmt) { 
+            stmt.Accept(this);
         }
 
         private string Stringify(object value) {
@@ -131,6 +139,73 @@
         {
             if (left.GetType() == typeof(double) && right.GetType() == typeof(double)) return;
             throw new RuntimeError(operator_, "Operands must be numbers.");
+        }
+
+        public object VisitExpressionStmt(Stmt.Expression stmt)
+        {
+            Evaluate(stmt.expression);
+
+            // Stmt.IVisitor<void> is not possible so we do
+            // Stmt.IVisitor<object> and return null.
+            return null;
+        }
+
+        public object VisitPrintStmt(Stmt.Print stmt)
+        {
+            object value = Evaluate(stmt.expression);
+            Console.WriteLine(Stringify(value));
+
+            // Stmt.IVisitor<void> is not possible so we do
+            // Stmt.IVisitor<object> and return null.
+            return null;
+        }
+
+        public object VisitVarStmt(Stmt.Var stmt)
+        {
+            object value = null;
+            if (stmt.initializer != null) { 
+                value = Evaluate(stmt.initializer);
+            }
+
+            _env.Define(stmt.name.Lexeme, value);
+
+            // Stmt.IVisitor<void> is not possible so we do
+            // Stmt.IVisitor<object> and return null.
+            return null;
+        }
+
+        public object VisitVariableExpr(Expr.Variable expr)
+        {
+            return _env.Get(expr.name);
+        }
+
+        public object VisitAssignExpr(Expr.Assign expr)
+        {
+            object value = Evaluate(expr.value);
+            _env.Assign(expr.name, value);
+            return value;
+        }
+
+        public object VisitBlockStmt(Stmt.Block stmt)
+        {
+            ExecuteBlock(stmt.statements, new Environment(_env));
+            return null;
+        }
+
+        private void ExecuteBlock(List<Stmt> statements, Environment env) {
+            Environment previous = _env;
+
+            try
+            {
+                _env = env;
+                foreach (Stmt stmt in statements)
+                {
+                    Execute(stmt);
+                }
+            }
+            finally { 
+                _env = previous;
+            }
         }
     }
 }

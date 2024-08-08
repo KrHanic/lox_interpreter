@@ -8,6 +8,11 @@ namespace lox
             return expr.Accept(this);
         }
 
+        public string VisitAssignExpr(Expr.Assign Expr)
+        {
+            throw new NotImplementedException();
+        }
+
         public string VisitBinaryExpr(Expr.Binary Expr)
         {
             return Parenthesize(Expr.Operator.Lexeme, Expr.Left, Expr.Right);
@@ -27,6 +32,11 @@ namespace lox
         public string VisitUnaryExpr(Expr.Unary Expr)
         {
             return Parenthesize(Expr.Operator.Lexeme, Expr.Right);
+        }
+
+        public string VisitVariableExpr(Expr.Variable Expr)
+        {
+            throw new NotImplementedException();
         }
 
         private string Parenthesize(string name, params Expr[] exprs)
