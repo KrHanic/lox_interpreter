@@ -4,12 +4,12 @@
     {
         static void Main(string[] args)
         {
-            if (args.Length != 1)
-            {
-                Console.WriteLine("Usage: generate_ast <output directory>");
-                Environment.Exit(64);
-            }
-            string outputDir = args[0];
+            //if (args.Length != 1)
+            //{
+            //    Console.WriteLine("Usage: generate_ast <output directory>");
+            //    Environment.Exit(64);
+            //}
+            string outputDir = "D:\\projects\\lox\\lox_interpreter\\csharp\\lox\\lox";//args[0];
             try
             {
                 DefineAst(outputDir, "Expr", new List<string> {
@@ -17,6 +17,11 @@
                     "Grouping : Expr Expression",
                     "Literal  : object Value",
                     "Unary    : Token Operator, Expr Right"
+                });
+
+                DefineAst(outputDir, "Stmt", new List<string> { 
+                    "Expression : Expr expression",
+                    "Print      : Expr expression"
                 });
             }
             catch (Exception e)

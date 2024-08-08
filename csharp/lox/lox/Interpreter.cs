@@ -31,7 +31,7 @@
 
         public object VisitBinaryExpr(Expr.Binary expr)
         {
-            object left = Evaluate(expr.Left);
+            object left  = Evaluate(expr.Left);
             object right = Evaluate(expr.Right);
 
             switch (expr.Operator.Type)
