@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace lox
+﻿namespace lox
 {
     public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
     {
@@ -206,6 +204,41 @@ namespace lox
             finally { 
                 _env = previous;
             }
+        }
+
+        public object VisitIfStmt(Stmt.If stmt)
+        {
+            if (IsTruthy(Evaluate(stmt.condition))) {
+                Execute(stmt.thenBranch);
+            } else if (stmt.elseBranch is not null) { 
+                Execute(stmt.elseBranch);
+            }
+
+            return null;
+        }
+
+        public object VisitLogicalExpr(Expr.Logical expr)
+        {
+            object left = Evaluate(expr.left);
+
+            if (expr.Operator.Type == TokenType.OR)
+            {
+                if (IsTruthy(left)) return left;
+            }
+            else 
+            {
+                if (!IsTruthy(left)) return left;
+            }
+
+            return Evaluate(expr.right);
+        }
+
+        public object VisitWhileStmt(Stmt.While stmt)
+        {
+            while (IsTruthy(Evaluate(stmt.condition))) {
+                Execute(stmt.body);
+            }
+            return null;
         }
     }
 }

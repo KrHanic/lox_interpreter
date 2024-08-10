@@ -17,6 +17,7 @@
                     "Binary   : Expr Left, Token Operator, Expr Right",
                     "Grouping : Expr Expression",
                     "Literal  : object Value",
+                    "Logical  : Expr left, Token Operator, Expr right",
                     "Unary    : Token Operator, Expr Right",
                     "Variable : Token name"
                 });
@@ -24,8 +25,10 @@
                 DefineAst(outputDir, "Stmt", new List<string> { 
                     "Block      : List<Stmt> statements",
                     "Expression : Expr expression",
+                    "If         : Expr condition, Stmt thenBranch, Stmt elseBranch",
                     "Print      : Expr expression",
-                    "Var        : Token name, Expr initializer"
+                    "Var        : Token name, Expr initializer",
+                    "While      : Expr condition, Stmt body"
                 });
             }
             catch (Exception e)

@@ -80,7 +80,7 @@ namespace lox
 
         private static void Report(int line, string where, string msg)
         { 
-            Debug.WriteLine($"[line {line}] Error{where}: {msg}");
+            Console.WriteLine($"[line {line}] Error{where}: {msg}");
             _hadError = true;
         }
 
@@ -90,7 +90,7 @@ namespace lox
         }
 
         public static void RuntimeError(RuntimeError error) {
-            Debug.WriteLine(error.Message + $"\n[line {error.Token.Line}]");
+            Console.WriteLine(error.Message + $"\n[line {error.Token.Line}]");
             _hadRuntimeError = true;
         }
     }

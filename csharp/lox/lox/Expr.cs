@@ -7,6 +7,7 @@ namespace lox
             public T VisitBinaryExpr(Binary Expr);
             public T VisitGroupingExpr(Grouping Expr);
             public T VisitLiteralExpr(Literal Expr);
+            public T VisitLogicalExpr(Logical Expr);
             public T VisitUnaryExpr(Unary Expr);
             public T VisitVariableExpr(Variable Expr);
         }
@@ -66,6 +67,23 @@ namespace lox
                 return visitor.VisitLiteralExpr(this);
             }
             public object Value;
+        }
+
+        public class Logical : Expr
+        {
+            public Logical(Expr left, Token Operator, Expr right)
+            {
+                this.left = left;
+                this.Operator = Operator;
+                this.right = right;
+            }
+
+            public override T Accept<T>(IVisitor<T> visitor) {
+                return visitor.VisitLogicalExpr(this);
+            }
+            public Expr left;
+            public Token Operator;
+            public Expr right;
         }
 
         public class Unary : Expr
