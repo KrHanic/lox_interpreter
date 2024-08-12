@@ -34,7 +34,7 @@ namespace lox
             }
             else
             {
-                RunFile("D:\\projects\\lox\\lox_interpreter\\csharp\\lox\\lox\\test.lox");
+                RunFile("test.lox");
                 //RunPrompt();
             }
         }
