@@ -2,7 +2,12 @@
 {
     public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
     {
-        private Environment _env = new();
+	public static Environment _globals = new();
+        private Environment _env = _globals;
+
+	public Interpreter() {
+            _globals.Define("Clock", new LoxClock()); // C# cannot create anonymous classes that implment an interface, so we created a real class for 'clock'.
+	}
 
         public void Interpret(List<Stmt> statements) {
             try
@@ -85,6 +90,26 @@
             return null;
         }
 
+	public object VisitCallExpr(Expr.Call expr) {
+	    object callee = Evaluate(expr.callee);
+
+	    List<object> arguments = new();
+	    foreach (Expr argument in expr.arguments) {
+		arguments.Add(Evaluate(argument));
+	    }
+
+	    if (!(callee is ILoxCallable)) {
+		throw new RuntimeError(expr.paren, "Can only call functions and classes.");
+	    }
+
+	    ILoxCallable function = (ILoxCallable)callee;
+	    if (arguments.Count != function.Arity()) {
+		throw new RuntimeError(expr.paren, $"Expected {function.Arity()} arguments but got {arguments.Count}.");
+	    }
+
+	    return function.Call(this, arguments);
+	}
+
         public object VisitGroupingExpr(Expr.Grouping expr)
         {
             return Evaluate(expr.Expression);
@@ -148,6 +173,12 @@
             return null;
         }
 
+	public object VisitFunctionStmt(Stmt.Function stmt) {
+	    LoxFunction function = new(stmt, _env);
+	    _env.Define(stmt.name.Lexeme, function);
+	    return null;
+	}
+
         public object VisitPrintStmt(Stmt.Print stmt)
         {
             object value = Evaluate(stmt.expression);
@@ -157,6 +188,13 @@
             // Stmt.IVisitor<object> and return null.
             return null;
         }
+
+	public object VisitReturnStmt(Stmt.Return stmt) {
+	    object value = null;
+	    if (stmt.value != null) value = Evaluate(stmt.value);
+
+	    throw new Return(value);
+	}
 
         public object VisitVarStmt(Stmt.Var stmt)
         {
@@ -190,7 +228,7 @@
             return null;
         }
 
-        private void ExecuteBlock(List<Stmt> statements, Environment env) {
+        public void ExecuteBlock(List<Stmt> statements, Environment env) {
             Environment previous = _env;
 
             try

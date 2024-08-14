@@ -44,6 +44,10 @@ namespace lox
             throw new NotImplementedException();
         }
 
+	public string VisitCallExpr(Expr.Call call){
+	    throw new NotImplementedException();
+	}
+
         private string Parenthesize(string name, params Expr[] exprs)
         {
             StringBuilder sb = new();

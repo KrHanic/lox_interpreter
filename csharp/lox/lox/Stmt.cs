@@ -5,8 +5,10 @@ namespace lox
         public interface IVisitor<T> {
             public T VisitBlockStmt(Block Stmt);
             public T VisitExpressionStmt(Expression Stmt);
+            public T VisitFunctionStmt(Function Stmt);
             public T VisitIfStmt(If Stmt);
             public T VisitPrintStmt(Print Stmt);
+            public T VisitReturnStmt(Return Stmt);
             public T VisitVarStmt(Var Stmt);
             public T VisitWhileStmt(While Stmt);
         }
@@ -34,6 +36,23 @@ namespace lox
                 return visitor.VisitExpressionStmt(this);
             }
             public Expr expression;
+        }
+
+        public class Function : Stmt
+        {
+            public Function(Token name, List<Token> parameters, List<Stmt> body)
+            {
+                this.name = name;
+                this.parameters = parameters;
+                this.body = body;
+            }
+
+            public override T Accept<T>(IVisitor<T> visitor) {
+                return visitor.VisitFunctionStmt(this);
+            }
+            public Token name;
+            public List<Token> parameters;
+            public List<Stmt> body;
         }
 
         public class If : Stmt
@@ -64,6 +83,21 @@ namespace lox
                 return visitor.VisitPrintStmt(this);
             }
             public Expr expression;
+        }
+
+        public class Return : Stmt
+        {
+            public Return(Token keyword, Expr value)
+            {
+                this.keyword = keyword;
+                this.value = value;
+            }
+
+            public override T Accept<T>(IVisitor<T> visitor) {
+                return visitor.VisitReturnStmt(this);
+            }
+            public Token keyword;
+            public Expr value;
         }
 
         public class Var : Stmt

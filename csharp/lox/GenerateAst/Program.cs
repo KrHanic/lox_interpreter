@@ -9,13 +9,14 @@
             //    Console.WriteLine("Usage: generate_ast <output directory>");
             //    Environment.Exit(64);
             //}
-            string outputDir = "D:\\projects\\lox\\lox_interpreter\\csharp\\lox\\lox";//args[0];
+            string outputDir = "../lox/";//args[0];
             try
             {
                 DefineAst(outputDir, "Expr", new List<string> {
                     "Assign   : Token name, Expr value",
                     "Binary   : Expr Left, Token Operator, Expr Right",
-                    "Grouping : Expr Expression",
+                    "Call     : Expr callee, Token paren, List<Expr> arguments",
+		    "Grouping : Expr Expression",
                     "Literal  : object Value",
                     "Logical  : Expr left, Token Operator, Expr right",
                     "Unary    : Token Operator, Expr Right",
@@ -25,8 +26,10 @@
                 DefineAst(outputDir, "Stmt", new List<string> { 
                     "Block      : List<Stmt> statements",
                     "Expression : Expr expression",
+		    "Function   : Token name, List<Token> parameters, List<Stmt> body",
                     "If         : Expr condition, Stmt thenBranch, Stmt elseBranch",
                     "Print      : Expr expression",
+		    "Return     : Token keyword, Expr value",
                     "Var        : Token name, Expr initializer",
                     "While      : Expr condition, Stmt body"
                 });
