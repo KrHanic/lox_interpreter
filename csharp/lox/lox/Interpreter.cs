@@ -4,6 +4,7 @@
     {
 	public static Environment _globals = new();
         private Environment _env = _globals;
+	private Dictionary<Expr, int> _locals = new();
 
 	public Interpreter() {
             _globals.Define("Clock", new LoxClock()); // C# cannot create anonymous classes that implment an interface, so we created a real class for 'clock'.
@@ -212,13 +213,31 @@
 
         public object VisitVariableExpr(Expr.Variable expr)
         {
-            return _env.Get(expr.name);
+            return LookUpVariable(expr.name, expr);
         }
+
+        private object LookUpVariable(Token name, Expr expr) {
+	    int distance = -1;
+	    if (_locals.ContainsKey(expr)) distance = _locals[expr];
+	    if (distance > -1) {
+		return _env.GetAt(distance, name.Lexeme);
+	    } else {
+		return _globals.Get(name);
+	    }
+	}
 
         public object VisitAssignExpr(Expr.Assign expr)
         {
             object value = Evaluate(expr.value);
-            _env.Assign(expr.name, value);
+
+	    int distance = -1;
+	    if (_locals.ContainsKey(expr)) distance = _locals[expr];
+	    if (distance > -1) {
+		_env.AssignAt(distance, expr.name, value);
+	    } else {
+		_globals.Assign(expr.name, value);
+	    }
+
             return value;
         }
 
@@ -278,5 +297,9 @@
             }
             return null;
         }
+
+	public void Resolve(Expr expr, int depth) {
+	    _locals.Add(expr, depth);
+	}
     }
 }
