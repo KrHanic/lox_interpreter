@@ -123,3 +123,60 @@ var a = "global";
     showA();
 }
 print "";
+
+print "class test";
+class DevonshireCream {
+    serveOn() {
+        return "Scones";
+    }
+}
+print DevonshireCream;
+
+class Bagel {}
+var bagel = Bagel();
+print bagel;
+bagel.test = "test1";
+print bagel.test;
+
+class Bacon {
+    eat() {
+        print "Crunch crunch crunch";
+    }
+}
+
+Bacon().eat();
+
+class Cake {
+    taste() {
+        var adjective = "delicious";
+	print "The " + this.flavor + " cake is " + adjective + "!";
+    }
+}
+
+var cake = Cake();
+cake.flavor = "German chocolate";
+cake.taste();
+
+class Foo {
+    init() {
+        print this;
+    }
+}
+
+var foo = Foo();
+print foo.init();
+
+class Doughnut {
+    cook() {
+        print "Fry until golden brown.";
+    }
+}
+
+class BostonCream < Doughnut {
+    cook() {
+        super.cook();
+	print "Pipe full of custard and coat with chocolate.";
+    }
+}
+BostonCream().cook();
+print "";

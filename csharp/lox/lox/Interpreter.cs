@@ -7,7 +7,7 @@
 	private Dictionary<Expr, int> _locals = new();
 
 	public Interpreter() {
-            _globals.Define("Clock", new LoxClock()); // C# cannot create anonymous classes that implment an interface, so we created a real class for 'clock'.
+            _globals.Define("Clock", new LoxClock()); //C# cannot create anonymous classes that implment an interface, so we created a real class for 'clock'.
 	}
 
         public void Interpret(List<Stmt> statements) {
@@ -111,6 +111,15 @@
 	    return function.Call(this, arguments);
 	}
 
+	public object VisitGetExpr(Expr.Get expr) {
+	    object obj = Evaluate(expr.obj);
+	    if (obj is LoxInstance) {
+		return ((LoxInstance)obj).Get(expr.name);
+	    }
+
+	    throw new RuntimeError(expr.name, "Only instances have properties.");
+	}
+
         public object VisitGroupingExpr(Expr.Grouping expr)
         {
             return Evaluate(expr.Expression);
@@ -175,7 +184,7 @@
         }
 
 	public object VisitFunctionStmt(Stmt.Function stmt) {
-	    LoxFunction function = new(stmt, _env);
+	    LoxFunction function = new(stmt, _env, false);
 	    _env.Define(stmt.name.Lexeme, function);
 	    return null;
 	}
@@ -247,6 +256,38 @@
             return null;
         }
 
+	public object VisitClassStmt(Stmt.Class stmt) {
+	    object superclass = null;
+	    if (stmt.superclass is not null) {
+		superclass = Evaluate(stmt.superclass);
+		if (!(superclass is LoxClass)) {
+		    throw new RuntimeError(stmt.superclass.name, "Superclass must be a class.");
+		}
+	    }
+
+	    _env.Define(stmt.name.Lexeme, null);
+
+	    if (stmt.superclass is not null) {
+		_env = new(_env);
+		_env.Define("super", superclass);
+	    }
+
+	    Dictionary<string, LoxFunction> methods = new();
+	    foreach (Stmt.Function method in stmt.methods) {
+		LoxFunction function = new(method, _env, method.name.Lexeme.Equals("init"));
+		methods.Add(method.name.Lexeme, function); // IMPORTANT: Java version uses .put() here, which is like AddOrUpdate(). So this might be a bug.
+	    }
+
+	    LoxClass klass = new(stmt.name.Lexeme, (LoxClass)superclass, methods);
+
+	    if (superclass is not null) {
+		_env = _env.Enclosing;
+	    }
+
+	    _env.Assign(stmt.name, klass);
+	    return null;
+	}
+
         public void ExecuteBlock(List<Stmt> statements, Environment env) {
             Environment previous = _env;
 
@@ -289,6 +330,37 @@
 
             return Evaluate(expr.right);
         }
+
+	public object VisitSetExpr(Expr.Set expr) {
+	    object obj = Evaluate(expr.obj);
+
+	    if (!(obj is LoxInstance)) {
+		throw new RuntimeError(expr.name, "Only instances have fields.");
+	    }
+
+	    object value = Evaluate(expr.value);
+	    ((LoxInstance)obj).Set(expr.name, value);
+	    return value;
+	}
+
+	public object VisitSuperExpr(Expr.Super expr) {
+	    int distance = _locals[expr];
+	    LoxClass superclass = (LoxClass)_env.GetAt(distance, "super");
+
+	    LoxInstance obj = (LoxInstance)_env.GetAt(distance - 1, "this");
+
+	    LoxFunction method = superclass.FindMethod(expr.method.Lexeme);
+
+	    if (method is null) {
+		throw new RuntimeError(expr.method, $"Undefined property '{expr.method.Lexeme}'.");
+	    }
+
+	    return method.Bind(obj);
+	}
+
+	public object VisitThisExpr(Expr.This expr) {
+	    return LookUpVariable(expr.keyword, expr);
+	}
 
         public object VisitWhileStmt(Stmt.While stmt)
         {

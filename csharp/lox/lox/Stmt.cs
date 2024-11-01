@@ -4,6 +4,7 @@ namespace lox
     {
         public interface IVisitor<T> {
             public T VisitBlockStmt(Block Stmt);
+            public T VisitClassStmt(Class Stmt);
             public T VisitExpressionStmt(Expression Stmt);
             public T VisitFunctionStmt(Function Stmt);
             public T VisitIfStmt(If Stmt);
@@ -23,6 +24,23 @@ namespace lox
                 return visitor.VisitBlockStmt(this);
             }
             public List<Stmt> statements;
+        }
+
+        public class Class : Stmt
+        {
+            public Class(Token name, Expr.Variable superclass, List<Stmt.Function> methods)
+            {
+                this.name = name;
+                this.superclass = superclass;
+                this.methods = methods;
+            }
+
+            public override T Accept<T>(IVisitor<T> visitor) {
+                return visitor.VisitClassStmt(this);
+            }
+            public Token name;
+            public Expr.Variable superclass;
+            public List<Stmt.Function> methods;
         }
 
         public class Expression : Stmt

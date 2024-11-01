@@ -3,6 +3,7 @@ namespace lox {
 	private Interpreter _interpreter;
 	private Stack<Dictionary<string, bool>> _scopes = new();
 	private FunctionType _currentFunction = FunctionType.NONE;
+	private ClassType _currentClass = ClassType.NONE;
 
 	public Resolver(Interpreter interpreter){
 	    _interpreter = interpreter;
@@ -10,13 +11,60 @@ namespace lox {
 
 	private enum FunctionType {
 	    NONE,
-	    FUNCTION
+	    FUNCTION,
+	    METHOD,
+	    INITIALIZER
+	}
+
+	private enum ClassType {
+	    NONE,
+	    CLASS
 	}
 
 	public object VisitBlockStmt(Stmt.Block stmt) {
 	    BeginScope();
 	    Resolve(stmt.statements);
 	    EndScope();
+	    return null;
+	}
+
+	public object VisitClassStmt(Stmt.Class stmt) {
+            ClassType enclosingClass = _currentClass;
+	    _currentClass = ClassType.CLASS;
+
+	    Declare(stmt.name);
+	    Define(stmt.name);
+
+	    if (stmt.superclass is not null && stmt.name.Lexeme.Equals(stmt.superclass.name.Lexeme)) {
+		Program.Error(stmt.superclass.name, "a class can't inherit from itself.");
+	    }
+
+	    if (stmt.superclass is not null) {
+		Resolve(stmt.superclass);
+	    }
+
+	    if (stmt.superclass is not null) {
+		BeginScope();
+		_scopes.Peek().Add("super", true); // IMPORTANT: Java version uses .put(), not .Add().
+	    }
+
+	    BeginScope();
+	    _scopes.Peek().Add("this", true); // IMPORTANT: This might be a bug, Java version calls .put(), not .Add().
+
+	    foreach (Stmt.Function method in stmt.methods) {
+		FunctionType declaration = FunctionType.METHOD;
+		if (method.name.Lexeme.Equals("init")) {
+		    declaration = FunctionType.INITIALIZER;
+		}
+
+		ResolveFunction(method, declaration);
+	    }
+
+	    EndScope();
+
+	    if (stmt.superclass is not null) EndScope();
+
+	    _currentClass = enclosingClass;
 	    return null;
 	}
 
@@ -49,7 +97,12 @@ namespace lox {
 	    if (_currentFunction == FunctionType.NONE) {
 		Program.Error(stmt.keyword, "Can't return from top-level code.");
 	    }
-	    if (stmt.value is not null) Resolve(stmt.value);
+	    if (stmt.value is not null) {
+		if (_currentFunction == FunctionType.INITIALIZER) {
+		    Program.Error(stmt.keyword, "Can't return a value from an initializer.");
+		}
+		Resolve(stmt.value);
+	    }
 	    return null;
 	}
 
@@ -90,6 +143,11 @@ namespace lox {
 	    return null;
 	}
 
+	public object VisitGetExpr(Expr.Get expr) {
+	    Resolve(expr.obj);
+	    return null;
+	}
+
 	public object VisitGroupingExpr(Expr.Grouping expr) {
 	    Resolve(expr.Expression);
 	    return null;
@@ -102,6 +160,27 @@ namespace lox {
 	public object VisitLogicalExpr(Expr.Logical expr) {
 	    Resolve(expr.left);
 	    Resolve(expr.right);
+	    return null;
+	}
+
+	public object VisitSetExpr(Expr.Set expr) {
+	    Resolve(expr.value);
+	    Resolve(expr.obj);
+	    return null;
+	}
+
+	public object VisitSuperExpr(Expr.Super expr) {
+	    ResolveLocal(expr, expr.keyword);
+	    return null;
+	}
+
+	public object VisitThisExpr(Expr.This expr) {
+	    if (_currentClass == ClassType.NONE) {
+		Program.Error(expr.keyword, "Can't use 'this' outside of a class.");
+		return null;
+	    }
+
+	    ResolveLocal(expr, expr.keyword);
 	    return null;
 	}
 
