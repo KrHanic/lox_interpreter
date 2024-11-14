@@ -34,7 +34,7 @@ namespace lox
             }
             else
             {
-                RunFile("D:\\projects\\lox\\lox_interpreter\\csharp\\lox\\lox\\test.lox");
+                RunFile("test.lox");
                 //RunPrompt();
             }
         }
@@ -69,6 +69,11 @@ namespace lox
             List<Stmt> statements = parser.Parse();
 
             if (_hadError) return;
+
+	    Resolver resolver = new(_interpreter);
+	    resolver.Resolve(statements);
+
+	    if (_hadError) return;
 
             _interpreter.Interpret(statements);
         }

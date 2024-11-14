@@ -1,9 +1,10 @@
-// testing print stmt
+print "testing print stmt";
 print "one";
 print true;
 print 2 + 2;
+print "";
 
-// testing global variables
+print "testing global variables";
 var a = 1;
 var a = 3;
 var b = 2;
@@ -11,8 +12,9 @@ print a + b;
 
 var c=1;
 print c=2;
+print "";
 
-// local variables, nesting and shadowing
+print "local variables, nesting and shadowing";
 var a = "global a";
 var b = "global b";
 var c = "global c";
@@ -32,29 +34,41 @@ var c = "global c";
 print a;
 print b;
 print c;
+print "";
 
-// if else test
+print "if else test";
 if (true) print "if true";
 if (false) {} else print "else";
 if (false) {} else if (true) print "else if";
 if (false) {} else if (false) {} else print "if else-if else";
+print "";
 
-// logical or/and
+print "logical or/and";
 print "hi" or 2;
 print nil or "yes";
 print false and 2;
 print 2 and false;
 print 2 and nil;
 if (nil) {} else print "nil is falsey";
+print "";
 
-// while test
-var i = 0;
-while (i < 10){
-    print i;
-    i = i+1;
+print "while test";
+var a = 0;
+var temp;
+{
+var b = 1;
+print b;
+
+while(a < 10000) {
+    print a;
+    temp = a;
+    a = b;
+    b = temp + a;
 }
+}
+print "";
 
-// for loop test - Fibonacci
+print "for loop test - Fibonacci";
 var a = 0;
 var temp;
 
@@ -63,3 +77,106 @@ for (var b = 1; a < 10000; b = temp + b) {
   temp = a;
   a = b;
 }
+print "";
+
+print "function test";
+fun sayHi(first, last) {
+    print "Hi, " + first + " " + last + "!";
+}
+
+sayHi("Dear", "Reader");
+
+fun fib(n) {
+    if (n <= 1) return n;
+    return fib(n-2) + fib(n-1);
+}
+
+var start = Clock();
+for (var i = 0; i < 20; i = i + 1) {
+    print fib(i);
+}
+var end = Clock();
+print end - start;
+
+fun makeCounter() {
+    var i = 0;
+    fun count() {
+        i = i+1;
+	print i;
+    }
+
+    return count;
+}
+
+var counter = makeCounter();
+counter();
+counter();
+
+var a = "global";
+{
+    fun showA() {
+        print a;
+    }
+    
+    showA();
+    var a = "block";
+    showA();
+}
+print "";
+
+print "class test";
+class DevonshireCream {
+    serveOn() {
+        return "Scones";
+    }
+}
+print DevonshireCream;
+
+class Bagel {}
+var bagel = Bagel();
+print bagel;
+bagel.test = "test1";
+print bagel.test;
+
+class Bacon {
+    eat() {
+        print "Crunch crunch crunch";
+    }
+}
+
+Bacon().eat();
+
+class Cake {
+    taste() {
+        var adjective = "delicious";
+	print "The " + this.flavor + " cake is " + adjective + "!";
+    }
+}
+
+var cake = Cake();
+cake.flavor = "German chocolate";
+cake.taste();
+
+class Foo {
+    init() {
+        print this;
+    }
+}
+
+var foo = Foo();
+print foo.init();
+
+class Doughnut {
+    cook() {
+        print "Fry until golden brown.";
+    }
+}
+
+class BostonCream < Doughnut {
+    cook() {
+        super.cook();
+	print "Pipe full of custard and coat with chocolate.";
+    }
+}
+BostonCream().cook();
+print "";

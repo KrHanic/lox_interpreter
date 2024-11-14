@@ -15,6 +15,25 @@
             Enclosing = env;
         }
 
+	public void AssignAt(int distance, Token name, object value) {
+	    var values = Ancestore(distance)._values;
+	    if (values.ContainsKey(name.Lexeme)) values[name.Lexeme] = value;
+	    else values.Add(name.Lexeme, value);
+	}
+
+	public object GetAt(int distance, string name) {
+	    return Ancestore(distance)._values[name];   
+	}
+
+	private Environment Ancestore(int distance) {
+	    Environment env = this;
+	    for ( int i = 0; i < distance; i++ ) {
+		env = env.Enclosing;
+	    }
+
+	    return env;
+	}
+
         public void Define(string name, object value) {
             if (_values.ContainsKey(name)) { 
                 _values[name] = value;

@@ -4,6 +4,22 @@ namespace lox
 {
     public class AstPrinter : Expr.IVisitor<string>
     {
+	public string VisitSuperExpr(Expr.Super expr) {
+	    throw new NotImplementedException();
+	}
+
+	public string VisitThisExpr(Expr.This expr) {
+	    throw new NotImplementedException();
+	}
+
+	public string VisitGetExpr(Expr.Get get) {
+	    throw new NotImplementedException();
+	}
+
+	public string VisitSetExpr(Expr.Set expr) {
+	    throw new NotImplementedException();
+	}
+
         public string Print(Expr expr) { 
             return expr.Accept(this);
         }
@@ -43,6 +59,10 @@ namespace lox
         {
             throw new NotImplementedException();
         }
+
+	public string VisitCallExpr(Expr.Call call){
+	    throw new NotImplementedException();
+	}
 
         private string Parenthesize(string name, params Expr[] exprs)
         {

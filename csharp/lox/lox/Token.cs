@@ -17,7 +17,7 @@
 
         public override string ToString()
         {
-            var result = $"{Type} {Lexeme} {Literal}";
+            var result = $"{Type} {Lexeme} {Literal} {Line}";
             return result;
         }
     }

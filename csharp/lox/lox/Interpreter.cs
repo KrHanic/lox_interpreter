@@ -2,7 +2,13 @@
 {
     public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
     {
-        private Environment _env = new();
+	public static Environment _globals = new();
+        private Environment _env = _globals;
+	private Dictionary<Expr, int> _locals = new();
+
+	public Interpreter() {
+            _globals.Define("Clock", new LoxClock()); //C# cannot create anonymous classes that implment an interface, so we created a real class for 'clock'.
+	}
 
         public void Interpret(List<Stmt> statements) {
             try
@@ -85,6 +91,35 @@
             return null;
         }
 
+	public object VisitCallExpr(Expr.Call expr) {
+	    object callee = Evaluate(expr.callee);
+
+	    List<object> arguments = new();
+	    foreach (Expr argument in expr.arguments) {
+		arguments.Add(Evaluate(argument));
+	    }
+
+	    if (!(callee is ILoxCallable)) {
+		throw new RuntimeError(expr.paren, "Can only call functions and classes.");
+	    }
+
+	    ILoxCallable function = (ILoxCallable)callee;
+	    if (arguments.Count != function.Arity()) {
+		throw new RuntimeError(expr.paren, $"Expected {function.Arity()} arguments but got {arguments.Count}.");
+	    }
+
+	    return function.Call(this, arguments);
+	}
+
+	public object VisitGetExpr(Expr.Get expr) {
+	    object obj = Evaluate(expr.obj);
+	    if (obj is LoxInstance) {
+		return ((LoxInstance)obj).Get(expr.name);
+	    }
+
+	    throw new RuntimeError(expr.name, "Only instances have properties.");
+	}
+
         public object VisitGroupingExpr(Expr.Grouping expr)
         {
             return Evaluate(expr.Expression);
@@ -148,6 +183,12 @@
             return null;
         }
 
+	public object VisitFunctionStmt(Stmt.Function stmt) {
+	    LoxFunction function = new(stmt, _env, false);
+	    _env.Define(stmt.name.Lexeme, function);
+	    return null;
+	}
+
         public object VisitPrintStmt(Stmt.Print stmt)
         {
             object value = Evaluate(stmt.expression);
@@ -157,6 +198,13 @@
             // Stmt.IVisitor<object> and return null.
             return null;
         }
+
+	public object VisitReturnStmt(Stmt.Return stmt) {
+	    object value = null;
+	    if (stmt.value != null) value = Evaluate(stmt.value);
+
+	    throw new Return(value);
+	}
 
         public object VisitVarStmt(Stmt.Var stmt)
         {
@@ -174,13 +222,31 @@
 
         public object VisitVariableExpr(Expr.Variable expr)
         {
-            return _env.Get(expr.name);
+            return LookUpVariable(expr.name, expr);
         }
+
+        private object LookUpVariable(Token name, Expr expr) {
+	    int distance = -1;
+	    if (_locals.ContainsKey(expr)) distance = _locals[expr];
+	    if (distance > -1) {
+		return _env.GetAt(distance, name.Lexeme);
+	    } else {
+		return _globals.Get(name);
+	    }
+	}
 
         public object VisitAssignExpr(Expr.Assign expr)
         {
             object value = Evaluate(expr.value);
-            _env.Assign(expr.name, value);
+
+	    int distance = -1;
+	    if (_locals.ContainsKey(expr)) distance = _locals[expr];
+	    if (distance > -1) {
+		_env.AssignAt(distance, expr.name, value);
+	    } else {
+		_globals.Assign(expr.name, value);
+	    }
+
             return value;
         }
 
@@ -190,7 +256,39 @@
             return null;
         }
 
-        private void ExecuteBlock(List<Stmt> statements, Environment env) {
+	public object VisitClassStmt(Stmt.Class stmt) {
+	    object superclass = null;
+	    if (stmt.superclass is not null) {
+		superclass = Evaluate(stmt.superclass);
+		if (!(superclass is LoxClass)) {
+		    throw new RuntimeError(stmt.superclass.name, "Superclass must be a class.");
+		}
+	    }
+
+	    _env.Define(stmt.name.Lexeme, null);
+
+	    if (stmt.superclass is not null) {
+		_env = new(_env);
+		_env.Define("super", superclass);
+	    }
+
+	    Dictionary<string, LoxFunction> methods = new();
+	    foreach (Stmt.Function method in stmt.methods) {
+		LoxFunction function = new(method, _env, method.name.Lexeme.Equals("init"));
+		methods.Add(method.name.Lexeme, function); // IMPORTANT: Java version uses .put() here, which is like AddOrUpdate(). So this might be a bug.
+	    }
+
+	    LoxClass klass = new(stmt.name.Lexeme, (LoxClass)superclass, methods);
+
+	    if (superclass is not null) {
+		_env = _env.Enclosing;
+	    }
+
+	    _env.Assign(stmt.name, klass);
+	    return null;
+	}
+
+        public void ExecuteBlock(List<Stmt> statements, Environment env) {
             Environment previous = _env;
 
             try
@@ -233,6 +331,37 @@
             return Evaluate(expr.right);
         }
 
+	public object VisitSetExpr(Expr.Set expr) {
+	    object obj = Evaluate(expr.obj);
+
+	    if (!(obj is LoxInstance)) {
+		throw new RuntimeError(expr.name, "Only instances have fields.");
+	    }
+
+	    object value = Evaluate(expr.value);
+	    ((LoxInstance)obj).Set(expr.name, value);
+	    return value;
+	}
+
+	public object VisitSuperExpr(Expr.Super expr) {
+	    int distance = _locals[expr];
+	    LoxClass superclass = (LoxClass)_env.GetAt(distance, "super");
+
+	    LoxInstance obj = (LoxInstance)_env.GetAt(distance - 1, "this");
+
+	    LoxFunction method = superclass.FindMethod(expr.method.Lexeme);
+
+	    if (method is null) {
+		throw new RuntimeError(expr.method, $"Undefined property '{expr.method.Lexeme}'.");
+	    }
+
+	    return method.Bind(obj);
+	}
+
+	public object VisitThisExpr(Expr.This expr) {
+	    return LookUpVariable(expr.keyword, expr);
+	}
+
         public object VisitWhileStmt(Stmt.While stmt)
         {
             while (IsTruthy(Evaluate(stmt.condition))) {
@@ -240,5 +369,9 @@
             }
             return null;
         }
+
+	public void Resolve(Expr expr, int depth) {
+	    _locals.Add(expr, depth);
+	}
     }
 }
