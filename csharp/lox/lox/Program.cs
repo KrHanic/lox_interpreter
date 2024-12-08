@@ -45,7 +45,7 @@ namespace lox
             string content = File.ReadAllText(fullPath);
             Run(content);
 
-            if(_hadError)         System.Environment.Exit(65);
+            if (_hadError)        System.Environment.Exit(65);
             if (_hadRuntimeError) System.Environment.Exit(70);
         }
 
@@ -63,17 +63,17 @@ namespace lox
 
         private static void Run(string source)
         {
-            Scanner scanner = new Scanner(source);
+            Scanner scanner = new(source);
             List<Token> tokens = scanner.ScanTokens();
             Parser parser = new(tokens);
             List<Stmt> statements = parser.Parse();
 
             if (_hadError) return;
 
-	    Resolver resolver = new(_interpreter);
-	    resolver.Resolve(statements);
+	        Resolver resolver = new(_interpreter);
+	        resolver.Resolve(statements);
 
-	    if (_hadError) return;
+	        if (_hadError) return;
 
             _interpreter.Interpret(statements);
         }

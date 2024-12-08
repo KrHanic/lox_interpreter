@@ -25,8 +25,8 @@ namespace lox {
 	    try {
 	        interpreter.ExecuteBlock(_declaration.body, environment);
 	    } catch (Return returnValue) {
-		if (_isInitializer) return _closure.GetAt(0, "this");
-		return returnValue._value;
+			if (_isInitializer) return _closure.GetAt(0, "this");
+			return returnValue._value;
 	    }
 
 	    if (_isInitializer) return _closure.GetAt(0, "this");
