@@ -10,6 +10,11 @@
 
 typedef enum {
 	OP_CONSTANT, // literals like numbers and strings that are stored in the "constants pool"
+	OP_ADD,
+	OP_SUBTRACT,
+	OP_MULTIPLY,
+	OP_DIVIDE,
+	OP_NEGATE, // negates the number
 	OP_RETURN, // return from the current function
 } OpCode;
 
