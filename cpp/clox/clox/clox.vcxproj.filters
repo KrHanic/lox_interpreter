@@ -15,28 +15,28 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="chunk.cpp">
+    <ClCompile Include="chunk.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="memory.cpp">
+    <ClCompile Include="memory.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="debug.cpp">
+    <ClCompile Include="debug.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="value.cpp">
+    <ClCompile Include="value.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="vm.cpp">
+    <ClCompile Include="vm.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="compiler.cpp">
+    <ClCompile Include="compiler.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="scanner.cpp">
+    <ClCompile Include="scanner.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -127,14 +127,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="chunk.cpp" />
-    <ClCompile Include="compiler.cpp" />
-    <ClCompile Include="debug.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="memory.cpp" />
-    <ClCompile Include="scanner.cpp" />
-    <ClCompile Include="value.cpp" />
-    <ClCompile Include="vm.cpp" />
+    <ClCompile Include="chunk.c" />
+    <ClCompile Include="compiler.c" />
+    <ClCompile Include="debug.c" />
+    <ClCompile Include="main.c" />
+    <ClCompile Include="memory.c" />
+    <ClCompile Include="scanner.c" />
+    <ClCompile Include="value.c" />
+    <ClCompile Include="vm.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="chunk.h" />
